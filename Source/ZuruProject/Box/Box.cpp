@@ -46,6 +46,7 @@ void Box::BuildBox() {
 
 	//Top
 	this->BuildFace(p2, p6, p3, p7, pNormalUpperFace, pVectorOffset);
+	this->mTopFaceVertices = { p2,p6,p3,p7 };
 
 	//bottom
 	this->BuildFace(p5, p1, p4, p0, pNormalBottomFace, pVectorOffset);

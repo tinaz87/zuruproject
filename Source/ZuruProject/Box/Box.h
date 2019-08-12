@@ -19,6 +19,7 @@ public:
 	TArray<FVector> mVerices;
 	TArray<FVector> mNormals;
 
+	TArray<FVector> mTopFaceVertices;
 private:
 	void BuildBox();
 };

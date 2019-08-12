@@ -25,6 +25,7 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	bool IsNearVertices(const FVector& iWorldHitPosition);
 
 private:
 

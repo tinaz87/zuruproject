@@ -47,7 +47,27 @@ void ACube::Tick(float DeltaTime)
 	FRotator pRotation1 = this->GetActorRotation();
 	UE_LOG(LogTemp, Warning, TEXT("ROTATION: %s"), *pRotation1.ToString());*/
 }
+bool ACube::IsNearVertices(const FVector& iWorldHitPosition) {
 
+	for (auto& pVertice : this->mBox->mTopFaceVertices) {
+
+		FVector pLocalPos = iWorldHitPosition - this->GetActorLocation();
+		float a = FVector::Distance(pVertice, pLocalPos);
+		if (a < 10) {
+			
+			
+			UE_LOG(LogTemp, Warning, TEXT("Hit: %s (world: %s), Vertex: %s, Distance: %f"),*pLocalPos.ToString(),*iWorldHitPosition.ToString(),
+				*pVertice.ToString(),a);
+			return true;
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("FAR --- Hit: %s (world: %s), Vertex: %s, Distance: %f"), *pLocalPos.ToString(), *iWorldHitPosition.ToString(),
+				*pVertice.ToString(), a);
+		}
+	}
+
+	return false;
+}
 
 void ACube::OnClick(UPrimitiveComponent* pComponent, FKey iKey)
 {
@@ -74,55 +94,58 @@ void ACube::OnClick(UPrimitiveComponent* pComponent, FKey iKey)
 	float pZPoint = (this->mLengthZ) / 2;
 
 	*/
-	scaleX += 0.5;
-
-	
-	FVector pLastPosition = this->mMesh->RelativeLocation;
-	FVector pPrevScale = this->mMesh->RelativeScale3D;
-	auto pVertexBuffer = this->mMesh->GetProcMeshSection(0)->ProcVertexBuffer;
-	auto pPoint = pVertexBuffer[0].Position;
-	auto pLastPositionPoint0 = pPrevScale * pPoint;
-	UE_LOG(LogTemp, Warning, TEXT("\nPRIMA\n-LastPosition: %s,\n-LastPositionPoint0: %s (prev-scale: %s,pos: %s)\n"), *pLastPosition.ToString(), *pLastPositionPoint0.ToString(), *pPrevScale.ToString(), *pPoint.ToString());
+	if (0) {
+		scaleX += 0.5;
 
 
+		FVector pLastPosition = this->mMesh->RelativeLocation;
+		FVector pPrevScale = this->mMesh->RelativeScale3D;
+		auto pVertexBuffer = this->mMesh->GetProcMeshSection(0)->ProcVertexBuffer;
+		auto pPoint = pVertexBuffer[0].Position;
+		auto pLastPositionPoint0 = pPrevScale * pPoint;
+		UE_LOG(LogTemp, Warning, TEXT("\nPRIMA\n-LastPosition: %s,\n-LastPositionPoint0: %s (prev-scale: %s,pos: %s)\n"), *pLastPosition.ToString(), *pLastPositionPoint0.ToString(), *pPrevScale.ToString(), *pPoint.ToString());
 
-	FVector pScale = FVector(scaleX, 1, 1);
-	auto pNewPoint = pScale * pPoint;
-	
-	auto pDistance = FVector::Distance(pNewPoint, pLastPositionPoint0);
-	auto pNewPosition = pNewPoint - pLastPositionPoint0; 
-	pNewPosition.X += pLastPosition.X;
-	pNewPosition.Y = pLastPosition.Y;
-	pNewPosition.Z = pLastPosition.Z;
 
-	this->mMesh->SetRelativeScale3D(pScale);
-	//this->mMesh->SetWorldScale3D(pScale);
 
-	UE_LOG(LogTemp, Warning, TEXT("\nDOPO\n-After: %s (scale: %s),\n-New Position: %s\n\n"), *pNewPoint.ToString(), *pScale.ToString(), *pNewPosition.ToString());
+		FVector pScale = FVector(scaleX, 1, 1);
+		auto pNewPoint = pScale * pPoint;
 
-	this->mMesh->SetRelativeLocation(pNewPosition);
-	UE_LOG(LogTemp, Warning, TEXT("\n-----------------------------\n"));
+		auto pDistance = FVector::Distance(pNewPoint, pLastPositionPoint0);
+		auto pNewPosition = pNewPoint - pLastPositionPoint0;
+		pNewPosition.X += pLastPosition.X;
+		pNewPosition.Y = pLastPosition.Y;
+		pNewPosition.Z = pLastPosition.Z;
 
-	if (!this->mVertex)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("\nCREO VERTEX"));
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		
+		this->mMesh->SetRelativeScale3D(pScale);
+		//this->mMesh->SetWorldScale3D(pScale);
 
-		
+		UE_LOG(LogTemp, Warning, TEXT("\nDOPO\n-After: %s (scale: %s),\n-New Position: %s\n\n"), *pNewPoint.ToString(), *pScale.ToString(), *pNewPosition.ToString());
 
-		this->mVertex = (AMyVertex*)GetWorld()->SpawnActor<AMyVertex>(AMyVertex::StaticClass(), FVector(0,0,0), FRotator(0, 0, 0), SpawnParams);
-		
+		this->mMesh->SetRelativeLocation(pNewPosition);
+		UE_LOG(LogTemp, Warning, TEXT("\n-----------------------------\n"));
 
-		mVertex->CreateShape();
-		
+		if (!this->mVertex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("\nCREO VERTEX"));
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
 
+
+
+
+			this->mVertex = (AMyVertex*)GetWorld()->SpawnActor<AMyVertex>(AMyVertex::StaticClass(), FVector(0, 0, 0), FRotator(0, 0, 0), SpawnParams);
+
+
+			mVertex->CreateShape();
+
+
+
+		}
+		FVector pMyPOsition = this->GetActorLocation() + pNewPoint;
+		UE_LOG(LogTemp, Warning, TEXT("\nPosizione vertice: %s\n\n"), *pMyPOsition.ToString());
+		mVertex->SetActorRelativeLocation(pMyPOsition);
 
 	}
-	FVector pMyPOsition = this->GetActorLocation() + pNewPoint;
-	UE_LOG(LogTemp, Warning, TEXT("\nPosizione vertice: %s\n\n"), *pMyPOsition.ToString());
-	mVertex->SetActorRelativeLocation(pMyPOsition);
 
 }
 
