@@ -26,7 +26,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	bool IsNearVertices(const FVector& iWorldHitPosition);
-
+	void PrepareDragging();
+	void Stretch(const float iY, const float iX);
 private:
 
 	UPROPERTY(VisibleAnywhere)
@@ -41,5 +42,7 @@ private:
 	AMyVertex* mVertex;
 	TArray<AMyVertex*> mVericesCubes;
 	Box* mBox;
-
+	FVector mPointPosition;
+	FVector mNewPointPosition;
+	FVector mLastScale;
 };

@@ -6,6 +6,9 @@
 #include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Pawn.h"
+
+#include "Cube.h"
+
 #include "PawnUser.generated.h"
 UCLASS()
 class ZURUPROJECT_API APawnUser : public APawn
@@ -23,7 +26,8 @@ public:
 	void ZoomIn();
 	void ZoomOut();
 
-	void LeftClick();
+	void LeftClickPress();
+	void LeftClickRelease();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -38,6 +42,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	FVector2D MovementInput;
 	FVector2D CameraInput;
-	float ZoomFactor;
-	bool bZoomingIn;
+
+	ACube* mResizableActor;
+	bool mDragActive;
+	FVector2D mMouseDeltaMove;
 };

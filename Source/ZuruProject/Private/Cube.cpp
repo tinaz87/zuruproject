@@ -33,7 +33,7 @@ void ACube::BeginPlay()
 	UE_LOG(LogTemp, Warning, TEXT("Location: %s"), *a);
 	UE_LOG(LogTemp, Warning, TEXT("ROTATION: %s"), *b);*/
 
-
+	mNewPointPosition = mPointPosition = this->mMesh->GetProcMeshSection(0)->ProcVertexBuffer[0].Position;
 }
 
 
@@ -52,7 +52,10 @@ bool ACube::IsNearVertices(const FVector& iWorldHitPosition) {
 	for (auto& pVertice : this->mBox->mTopFaceVertices) {
 
 		FVector pLocalPos = iWorldHitPosition - this->GetActorLocation();
-		float a = FVector::Distance(pVertice, pLocalPos);
+		FVector pPrevScale = this->mMesh->RelativeScale3D;
+		auto pLastPositionPoint0 = pPrevScale * pVertice;
+
+		float a = FVector::Distance(pLastPositionPoint0, pLocalPos);
 		if (a < 10) {
 			
 			
@@ -69,9 +72,55 @@ bool ACube::IsNearVertices(const FVector& iWorldHitPosition) {
 	return false;
 }
 
+void ACube::PrepareDragging(){
+	
+	mLastScale = this->mMesh->RelativeScale3D;
+}
+void ACube::Stretch(const float iY, const float iX) {
+
+	FVector pLastPosition = this->mMesh->RelativeLocation;
+	FVector pPrevScale = this->mMesh->RelativeScale3D;
+
+	/*auto pVertexBuffer = this->mMesh->GetProcMeshSection(0)->ProcVertexBuffer;
+	auto pPoint = pVertexBuffer[0].Position;*/
+	auto& pPoint = this->mPointPosition;
+
+	mNewPointPosition += FVector(iX, iY, 0);
+	auto pNewVertexPos = mNewPointPosition;
+
+	auto pLastPositionPoint0 = pPrevScale * pPoint;
+	auto pNewPositionPoint0 = pPrevScale * pNewVertexPos;
+
+
+	//auto pNewVertexPos = pLastPositionPoint0 + FVector(iX, iY, 0);
+
+
+	float pScaleX = pNewPositionPoint0.X / pLastPositionPoint0.X;
+	float pScaleY = pNewPositionPoint0.Y / pLastPositionPoint0.Y;
+	float pScaleZ = pNewPositionPoint0.Z / pLastPositionPoint0.Z;
+
+
+
+	FVector pScale = ( FVector(pScaleX, pScaleY, pScaleZ));
+
+
+	//auto pNewPosition = pNewPositionPoint0 - pLastPositionPoint0;
+	//pNewPosition.X += pLastPosition.X;
+	//pNewPosition.Y = pLastPosition.Y;
+	//pNewPosition.Z = pLastPosition.Z;
+//
+	this->mMesh->SetRelativeScale3D(pScale);
+
+	UE_LOG(LogTemp, Warning, TEXT("\nDOPO\n-After: %s (scale: %s, prev: %s),\n"), *pNewPositionPoint0.ToString(), *pScale.ToString(),*pPrevScale.ToString());
+
+	//this->mMesh->SetRelativeLocation(pNewPosition);
+	UE_LOG(LogTemp, Warning, TEXT("\n-----------------------------\n"));
+
+
+}
 void ACube::OnClick(UPrimitiveComponent* pComponent, FKey iKey)
 {
-	UE_LOG(LogTemp, Warning, TEXT("\n-----------------------------\n"));
+	//UE_LOG(LogTemp, Warning, TEXT("\n-----------------------------\n"));
 	//FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(TEXT("Clicked")));
 	
 	//UProceduralMeshComponent* pMesh = NewObject<UProceduralMeshComponent>(this, TEXT("MuVertices"));

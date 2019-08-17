@@ -7,14 +7,13 @@
 
 #include "ConstructorHelpers.h"
 
-#include "Cube.h"
 // Sets default values
 APawnUser::APawnUser()
 {
 
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	this->mDragActive = false;
 
 	// Take control of the default playe
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
@@ -65,12 +64,12 @@ void APawnUser::YawCamera(float AxisValue)
 
 void APawnUser::ZoomIn()
 {
-	bZoomingIn = true;
+	
 }
 
 void APawnUser::ZoomOut()
 {
-	bZoomingIn = false;
+	
 }
 
 // Called when the game starts or when spawned
@@ -116,6 +115,25 @@ void APawnUser::Tick(float DeltaTime)
 		}
 	}
 
+
+	if (this->mDragActive) {
+	
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		if (PlayerController != nullptr)
+		{
+
+			PlayerController->GetInputMouseDelta(mMouseDeltaMove.X, mMouseDeltaMove.Y);
+
+			
+			if (!mMouseDeltaMove.IsZero()) {
+				GEngine->AddOnScreenDebugMessage(-1, 6.f, FColor::Red, FString::Printf(TEXT("Mouse Delta X: %f, Y: %f"), mMouseDeltaMove.X, mMouseDeltaMove.Y));
+
+				this->mResizableActor->Stretch(mMouseDeltaMove.Y*5, mMouseDeltaMove.X*5);
+
+			}
+		}
+	}
+
 	//
 	//FHitResult OutHit;
 	//FVector Start = this->GetActorLocation();// ->GetComponentLocation();
@@ -144,7 +162,17 @@ void APawnUser::Tick(float DeltaTime)
 	//}
 	
 }
-void  APawnUser::LeftClick() {
+
+void APawnUser::LeftClickRelease() {
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Left Release")));
+
+	this->mDragActive = false;
+
+}
+void  APawnUser::LeftClickPress() {
+
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Left Press")));
+
 	// Get the camera transform.
 	FVector CameraLocation;
 	FRotator CameraRotation;
@@ -165,7 +193,12 @@ void  APawnUser::LeftClick() {
 			ACube* pCube = Cast<ACube>(TraceResult.GetActor());
 			if (pCube)
 			{				
-				pCube->IsNearVertices(TraceResult.ImpactPoint);
+				this->mDragActive = pCube->IsNearVertices(TraceResult.ImpactPoint);
+				if (mDragActive) {
+					mResizableActor = pCube;
+					mMouseDeltaMove.Set(0, 0);
+					pCube->PrepareDragging();
+				}
 			}
 		}
 		if (TraceResult.GetComponent() != nullptr)
@@ -233,6 +266,7 @@ void APawnUser::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("Yaw", this, &APawnUser::YawCamera);
 
 
-	PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &APawnUser::LeftClick);
+	PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &APawnUser::LeftClickPress);
+	PlayerInputComponent->BindAction("LeftClick", IE_Released, this, &APawnUser::LeftClickRelease);
 }
 
